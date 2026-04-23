@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: saista-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: saista_bakers
+      MYSQL_USER: baker
+      MYSQL_PASSWORD: baker123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    networks:
+      - saista-network
+
+  # SMTP Server (for email notifications)
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: saista-mailhog
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    networks:
+      - saista-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: ../docker/Dockerfile.user-service
+    container_name: saista-user-service
+    environment:
+      DB_HOST: mysql
+      DB_USER: baker
+      DB_PASSWORD: baker123
+      DB_NAME: saista_bakers
+      DB_PORT: 3306
+      FLASK_ENV: production
+    ports:
+      - "5001:5001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - saista-network
+    restart: unless-stopped
+
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: ../docker/Dockerfile.order-service
+    container_name: saista-order-service
+    environment:
+      DB_HOST: mysql
+      DB_USER: baker
+      DB_PASSWORD: baker123
+      DB_NAME: saista_bakers
+      DB_PORT: 3306
+      SMTP_SERVER: mailhog
+      SMTP_PORT: 1025
+      SENDER_EMAIL: noreply@saista-bakers.com
+      FLASK_ENV: production
+    ports:
+      - "5002:5002"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - saista-network
+    restart: unless-stopped
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: saista-frontend
+    environment:
+      REACT_APP_USER_SERVICE_URL: http://localhost:5001
+      REACT_APP_ORDER_SERVICE_URL: http://localhost:5002
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - order-service
+    networks:
+      - saista-network
+    restart: unless-stopped
+
+networks:
+  saista-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
