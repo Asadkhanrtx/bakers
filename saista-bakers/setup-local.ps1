@@ -182,17 +182,17 @@ Write-Host ""
 Write-Host "2. Open 3 new PowerShell windows and run each:" -ForegroundColor White
 Write-Host ""
 Write-Host "   Window 1 - User Service:" -ForegroundColor Cyan
-Write-Host "   cd $userServicePath" -ForegroundColor Gray
+Write-Host "   cd `$userServicePath" -ForegroundColor Gray
 Write-Host "   .\venv\Scripts\Activate.ps1" -ForegroundColor Gray
-Write-Host "   python app/app.py" -ForegroundColor Gray
+Write-Host "   python app/main.py" -ForegroundColor Gray
 Write-Host ""
 Write-Host "   Window 2 - Order Service:" -ForegroundColor Cyan
-Write-Host "   cd $orderServicePath" -ForegroundColor Gray
+Write-Host "   cd `$orderServicePath" -ForegroundColor Gray
 Write-Host "   .\venv\Scripts\Activate.ps1" -ForegroundColor Gray
-Write-Host "   python app/app.py" -ForegroundColor Gray
+Write-Host "   python app/main.py" -ForegroundColor Gray
 Write-Host ""
 Write-Host "   Window 3 - Frontend:" -ForegroundColor Cyan
-Write-Host "   cd $frontendPath" -ForegroundColor Gray
+Write-Host "   cd `$frontendPath" -ForegroundColor Gray
 Write-Host "   npm start" -ForegroundColor Gray
 Write-Host ""
 Write-Host "3. Visit http://localhost:3000 in your browser" -ForegroundColor White

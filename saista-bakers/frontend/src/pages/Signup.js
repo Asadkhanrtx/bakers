@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { userAPI } from '../api/api';
+import Navbar from '../components/Navbar';
 import '../styles/auth.css';
 
 function Signup() {
@@ -32,11 +33,13 @@ function Signup() {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h1>Saista Bakers</h1>
-        <h2>Sign Up</h2>
-        {error && <div className="error-message">{error}</div>}
+    <>
+      <Navbar />
+      <div className="auth-container">
+        <div className="auth-card">
+          <h1 className="auth-logo">Saista Bakers</h1>
+          <h2>Sign Up</h2>
+          {error && <div className="error-message">{error}</div>}
         <form onSubmit={handleSubmit}>
           <input
             type="text"
@@ -73,7 +76,8 @@ function Signup() {
           Already have an account? <Link to="/login">Login here</Link>
         </p>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 

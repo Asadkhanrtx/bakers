@@ -1,0 +1,24 @@
+.gallery-page { min-height: 100vh; background: #fff; }
+.gallery-hero { background: #f7cac9; padding: 60px 20px; text-align: center; }
+.gallery-hero h1 { font-family: 'Playball', cursive; font-size: 3rem; color: #8b3a3a; margin-bottom: 10px; }
+.gallery-hero p { color: #8b3a3a; opacity: 0.8; }
+
+.gallery-container { max-width: 1200px; margin: 0 auto; padding: 60px 20px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+
+.gallery-item { position: relative; border-radius: 20px; overflow: hidden; height: 350px; cursor: pointer; }
+.gallery-item img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+.gallery-item:hover img { transform: scale(1.1); }
+
+.gallery-overlay {
+  position: absolute; inset: 0; background: rgba(139, 58, 58, 0.7);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.3s;
+}
+.gallery-item:hover .gallery-overlay { opacity: 1; }
+.gallery-overlay span { color: white; font-weight: 700; font-size: 1.2rem; transform: translateY(20px); transition: transform 0.3s; }
+.gallery-item:hover .gallery-overlay span { transform: translateY(0); }
+
+@media (max-width: 600px) {
+  .gallery-grid { grid-template-columns: 1fr; }
+}
