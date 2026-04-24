@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { orderAPI } from '../api/api';
 import Navbar from '../components/Navbar';
 import '../styles/cart.css';
@@ -8,62 +8,70 @@ function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  
+  // Checkout states
   const [deliveryAddress, setDeliveryAddress] = useState('');
   const [deliveryDate, setDeliveryDate] = useState('');
-  const [placing, setPlacing] = useState(false);
-  const [orderSuccess, setOrderSuccess] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [placing, setPlacing] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!localStorage.getItem('authToken')) { navigate('/login'); return; }
     fetchCart();
   }, []);
 
   const fetchCart = async () => {
-    setLoading(true);
     try {
+      setLoading(true);
       const cartOrderId = localStorage.getItem('cartOrderId');
-      if (!cartOrderId) { setCartItems([]); setTotal(0); setLoading(false); return; }
+      if (!cartOrderId) {
+        setCartItems([]);
+        setTotal(0);
+        return;
+      }
       const data = await orderAPI.getCart(cartOrderId);
       setCartItems(data.items || []);
       setTotal(data.total || 0);
     } catch (err) {
-      setCartItems([]);
+      setError('Failed to fetch cart. Please login again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemoveItem = async (itemId) => {
+  const removeItem = async (itemId) => {
     try {
       const cartOrderId = localStorage.getItem('cartOrderId');
       await orderAPI.removeFromCart(cartOrderId, itemId);
       fetchCart();
-    } catch (err) { alert('Error removing item'); }
+    } catch (err) {
+      alert('Error removing item');
+    }
   };
 
-  const handleProceedToCheckout = (e) => {
+  const handleCheckoutClick = (e) => {
     e.preventDefault();
-    if (!deliveryAddress.trim()) { alert('Please enter a delivery address'); return; }
-    if (!deliveryDate) { alert('Please select a delivery date'); return; }
-    if (cartItems.length === 0) { alert('Your cart is empty'); return; }
+    if (!deliveryAddress || !deliveryDate) {
+      alert("Please enter delivery details.");
+      return;
+    }
     setShowConfirm(true);
   };
 
-  const handleConfirmOrder = async () => {
+  const confirmOrder = async () => {
     try {
       setPlacing(true);
       const cartOrderId = localStorage.getItem('cartOrderId');
-      const result = await orderAPI.placeOrder(cartOrderId, deliveryAddress, deliveryDate);
-      localStorage.removeItem('cartOrderId');
-      setOrderSuccess({
-        orderId: result.order_id || cartOrderId,
-        total: result.total_price || total,
-        deliveryDate,
-        deliveryAddress,
-      });
-      setShowConfirm(false);
+      const response = await orderAPI.placeOrder(cartOrderId, deliveryAddress, deliveryDate);
+      
+      if (response && response.order_id) {
+        localStorage.removeItem('cartOrderId');
+        setShowConfirm(false);
+        navigate(`/payment/${response.order_id}`);
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err) {
       alert('Error placing order: ' + (err.error || err.detail || 'Please try again'));
     } finally {
@@ -71,159 +79,110 @@ function Cart() {
     }
   };
 
-  // ─── Order Success Screen ────────────────────────────────────
-  if (orderSuccess) {
-    return (
-      <div className="cart-page">
-        <Navbar />
-        <div className="order-success-screen">
-          <div className="success-card">
-            <div className="success-icon">🎉</div>
-            <h2>Order Placed Successfully!</h2>
-            <p className="success-sub">Thank you for your order. A confirmation will be sent to your email.</p>
-            <div className="success-details">
-              <div className="detail-row"><span>Order ID</span><strong>#{orderSuccess.orderId}</strong></div>
-              <div className="detail-row"><span>Total</span><strong>Rs. {Number(orderSuccess.total).toFixed(2)}</strong></div>
-              <div className="detail-row"><span>Delivery Date</span><strong>{orderSuccess.deliveryDate}</strong></div>
-              <div className="detail-row"><span>Address</span><strong>{orderSuccess.deliveryAddress}</strong></div>
-            </div>
-            <div className="payment-note">
-              <h3>💳 Payment Instructions</h3>
-              <p>Payment details have been sent to your registered email. You can pay via:</p>
-              <ul>
-                <li>📱 EasyPaisa / JazzCash</li>
-                <li>🏦 Bank Transfer</li>
-                <li>💵 Cash on Delivery</li>
-              </ul>
-              <p className="note-small">Our team will contact you within 2 hours to confirm your order.</p>
-            </div>
-            <div className="success-actions">
-              <button onClick={() => navigate('/orders')} className="btn-view-orders">View My Orders</button>
-              <button onClick={() => navigate('/products')} className="btn-shop-more">Continue Shopping</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ─── Confirm Order Modal ─────────────────────────────────────
-  const ConfirmModal = () => (
-    <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
-      <div className="confirm-modal" onClick={e => e.stopPropagation()}>
-        <h3>Confirm Your Order</h3>
-        <div className="confirm-items">
-          {cartItems.map(item => (
-            <div key={item.id} className="confirm-item">
-              <span>{item.name} × {item.quantity}</span>
-              <span>Rs. {item.item_total.toFixed(2)}</span>
-            </div>
-          ))}
-          <div className="confirm-total">
-            <span>Total</span>
-            <strong>Rs. {total.toFixed(2)}</strong>
-          </div>
-        </div>
-        <div className="confirm-info">
-          <p>📍 <strong>{deliveryAddress}</strong></p>
-          <p>📅 Delivery: <strong>{deliveryDate}</strong></p>
-        </div>
-        <p className="confirm-note">Payment instructions will be sent to your email after confirmation.</p>
-        <div className="confirm-actions">
-          <button className="btn-cancel" onClick={() => setShowConfirm(false)}>← Go Back</button>
-          <button className="btn-confirm" onClick={handleConfirmOrder} disabled={placing}>
-            {placing ? 'Placing Order...' : '✓ Confirm & Place Order'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="cart-page">
       <Navbar />
-      {showConfirm && <ConfirmModal />}
+      <div className="cart-container">
+        <h2>Your Shopping Cart</h2>
 
-      <div className="cart-hero">
-        <h1>Your Shopping Cart</h1>
-        <p>{cartItems.length} item{cartItems.length !== 1 ? 's' : ''} in your cart</p>
-      </div>
-
-      <main className="cart-main">
         {loading ? (
-          <div className="cart-loading"><div className="spinner" /><p>Loading your cart...</p></div>
+          <div className="cart-loading">Loading...</div>
+        ) : error ? (
+          <div className="cart-error">{error}</div>
         ) : cartItems.length === 0 ? (
           <div className="empty-cart">
             <div className="empty-icon">🛒</div>
             <h3>Your cart is empty</h3>
-            <p>Looks like you haven't added any items yet.</p>
-            <Link to="/products" className="btn-shop-now">Browse Products</Link>
+            <p>Looks like you haven't added any sweet treats yet.</p>
+            <button className="btn-primary" onClick={() => navigate('/products')}>Browse Menu</button>
           </div>
         ) : (
-          <div className="cart-layout">
-            {/* Cart Items */}
-            <div className="cart-items-panel">
-              <h3>Order Items</h3>
-              {cartItems.map(item => (
+          <div className="cart-grid">
+            <div className="cart-items">
+              {cartItems.map((item) => (
                 <div key={item.id} className="cart-item-card">
-                  <div className="cart-item-info">
-                    <h4>{item.name}</h4>
-                    <p>Qty: {item.quantity} × Rs. {item.price}</p>
+                  <div className="item-details">
+                    <h3>{item.name}</h3>
+                    <p className="item-price">Rs. {Number(item.price).toFixed(2)}</p>
                   </div>
-                  <div className="cart-item-right">
-                    <span className="cart-item-total">Rs. {item.item_total.toFixed(2)}</span>
-                    <button className="remove-btn" onClick={() => handleRemoveItem(item.id)}>✕</button>
+                  <div className="item-actions">
+                    <span className="qty-badge">Qty: {item.quantity}</span>
+                    <button className="remove-btn" onClick={() => removeItem(item.id)}>Remove</button>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Order Summary + Checkout Form */}
-            <div className="order-summary-panel">
-              <h3>Order Summary</h3>
-              <div className="summary-lines">
-                {cartItems.map(item => (
-                  <div key={item.id} className="summary-line">
-                    <span>{item.name} ×{item.quantity}</span>
-                    <span>Rs. {item.item_total.toFixed(2)}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="summary-total">
-                <span>Total</span>
-                <strong>Rs. {total.toFixed(2)}</strong>
+            <div className="checkout-section">
+              <div className="summary-card">
+                <h3>Order Summary</h3>
+                <div className="summary-row">
+                  <span>Subtotal</span>
+                  <span>Rs. {Number(total).toFixed(2)}</span>
+                </div>
+                <div className="summary-row">
+                  <span>Delivery</span>
+                  <span className="free">Calculated at payment</span>
+                </div>
+                <div className="summary-row total">
+                  <span>Total</span>
+                  <span>Rs. {Number(total).toFixed(2)}</span>
+                </div>
               </div>
 
-              <form onSubmit={handleProceedToCheckout} className="checkout-form">
+              <div className="delivery-form">
                 <h3>Delivery Details</h3>
-                <label>Delivery Address *</label>
-                <textarea
-                  placeholder="Street address, city, area..."
-                  value={deliveryAddress}
-                  onChange={e => setDeliveryAddress(e.target.value)}
-                  required
-                  rows={3}
-                />
-                <label>Delivery Date *</label>
-                <input
-                  type="date"
-                  value={deliveryDate}
-                  min={new Date().toISOString().split('T')[0]}
-                  onChange={e => setDeliveryDate(e.target.value)}
-                  required
-                />
-                <div className="payment-info-box">
-                  <h4>💳 Payment</h4>
-                  <p>Payment details will be sent to your email after order confirmation. We accept EasyPaisa, JazzCash, Bank Transfer, and Cash on Delivery.</p>
-                </div>
-                <button type="submit" className="checkout-btn">
-                  Proceed to Confirm →
-                </button>
-              </form>
+                <form onSubmit={handleCheckoutClick}>
+                  <div className="field">
+                    <label>Delivery Address</label>
+                    <textarea 
+                      required 
+                      rows="3" 
+                      placeholder="Enter your full address..."
+                      value={deliveryAddress}
+                      onChange={(e) => setDeliveryAddress(e.target.value)}
+                    ></textarea>
+                  </div>
+                  <div className="field">
+                    <label>Expected Delivery Date</label>
+                    <input 
+                      type="date" 
+                      required 
+                      value={deliveryDate}
+                      onChange={(e) => setDeliveryDate(e.target.value)}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <button type="submit" className="btn-primary checkout-btn">
+                    Proceed to Payment
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         )}
-      </main>
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="confirm-modal">
+            <h3>Confirm Order Details</h3>
+            <div className="confirm-details">
+              <p><strong>Total Amount:</strong> Rs. {Number(total).toFixed(2)}</p>
+              <p><strong>Delivery Date:</strong> {deliveryDate}</p>
+              <p><strong>Address:</strong> {deliveryAddress}</p>
+            </div>
+            <p className="confirm-note">You will be redirected to payment securely.</p>
+            <div className="modal-actions">
+              <button className="btn-outline" onClick={() => setShowConfirm(false)} disabled={placing}>Cancel</button>
+              <button className="btn-primary" onClick={confirmOrder} disabled={placing}>
+                {placing ? 'Processing...' : 'Confirm & Pay'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

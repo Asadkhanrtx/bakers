@@ -18,12 +18,12 @@ const PRODUCT_IMAGES = {
   'Ferrero Rocher Cake': 'https://images.unsplash.com/photo-1602351447937-745cb720612f?w=400&q=80',
   'Oreo Cake': 'https://images.unsplash.com/photo-1621303837174-89787a7d4729?w=400&q=80',
   'Truffle Cake': 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400&q=80',
-  'Butter Cookies': 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&q=80',
-  'Chocolate Chip Cookies': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400&q=80',
-  'Oatmeal Cookies': 'https://images.unsplash.com/photo-1568051243851-f9b136146e97?w=400&q=80',
-  'Almond Cookies': 'https://images.unsplash.com/photo-1506459225024-1428097a7e18?w=400&q=80',
-  'Cashew Cookies': 'https://images.unsplash.com/photo-1549931319-a545dcf3bc7e?w=400&q=80',
-  'Double Chocolate Cookies': 'https://images.unsplash.com/photo-1597734584164-39f648fa7c42?w=400&q=80',
+  'Butter Cookies': 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=400&q=80',
+  'Chocolate Chip Cookies': 'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&q=80',
+  'Oatmeal Cookies': 'https://images.unsplash.com/photo-1621236378699-8597faf6a176?w=400&q=80',
+  'Almond Cookies': 'https://images.unsplash.com/photo-1605342416439-d3e157790bd5?w=400&q=80',
+  'Cashew Cookies': 'https://images.unsplash.com/photo-1557088915-d72db621db3d?w=400&q=80',
+  'Double Chocolate Cookies': 'https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?w=400&q=80',
 };
 
 const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80';
@@ -72,7 +72,11 @@ function Products() {
 
   const handleAddToCart = async (product) => {
     try {
-      const quantity = quantities[product.id] || 1;
+      const quantity = quantities[product.id] || 0;
+      if (quantity === 0) {
+        showToast('❌ Please select a quantity first.');
+        return;
+      }
       const response = await orderAPI.addToCart(product.id, quantity);
       localStorage.setItem('cartOrderId', response.order_id);
       setAddedItems(prev => ({ ...prev, [product.id]: true }));
@@ -165,20 +169,21 @@ function Products() {
                       <div className="product-actions">
                         <div className="qty-control">
                           <button onClick={() => {
-                            const cur = quantities[product.id] || 1;
-                            if (cur > 1) setQuantities(p => ({ ...p, [product.id]: cur - 1 }));
+                            const cur = quantities[product.id] || 0;
+                            if (cur > 0) setQuantities(p => ({ ...p, [product.id]: cur - 1 }));
                           }}>−</button>
-                          <span>{quantities[product.id] || 1}</span>
+                          <span>{quantities[product.id] || 0}</span>
                           <button onClick={() => {
-                            const cur = quantities[product.id] || 1;
+                            const cur = quantities[product.id] || 0;
                             setQuantities(p => ({ ...p, [product.id]: cur + 1 }));
                           }}>+</button>
                         </div>
                         <button
                           className={`add-cart-btn ${addedItems[product.id] ? 'added' : ''}`}
                           onClick={() => handleAddToCart(product)}
+                          disabled={!quantities[product.id] || quantities[product.id] === 0}
                         >
-                          {addedItems[product.id] ? '✓ Added!' : '🛒 Add to Cart'}
+                          {addedItems[product.id] ? 'Added!' : 'Add to Cart'}
                         </button>
                       </div>
                     </div>

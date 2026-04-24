@@ -60,6 +60,9 @@ function Login() {
         <p>
           Don't have an account? <Link to="/signup">Sign up here</Link>
         </p>
+        <p style={{ marginTop: '15px', fontSize: '0.85rem' }}>
+          <Link to="/admin/login" style={{ color: '#8b3a3a' }}>Staff / Admin Login</Link>
+        </p>
       </div>
       </div>
     </>

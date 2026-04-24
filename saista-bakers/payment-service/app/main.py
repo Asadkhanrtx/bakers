@@ -1,10 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes.cart import router as cart_router
-from app.routes.orders import router as orders_router
-from app.routes.custom import router as custom_router
+from app.routes.payment import router as payment_router
 
-app = FastAPI(title="Saista Bakers - Order Service", version="2.0.0")
+app = FastAPI(title="Saista Bakers - Payment Service", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -14,9 +12,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(cart_router)
-app.include_router(orders_router)
-app.include_router(custom_router)
+app.include_router(payment_router)
 
 
 @app.get("/health")
@@ -27,9 +23,9 @@ def health():
     cur.execute("SELECT 1")
     cur.fetchone()
     cur.close(); conn.close()
-    return {"status": "healthy", "service": "order-service", "version": "2.0.0"}
+    return {"status": "healthy", "service": "payment-service", "version": "1.0.0"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=5002, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=5003, reload=True)

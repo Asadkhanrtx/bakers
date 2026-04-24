@@ -38,7 +38,7 @@ const Home = () => {
             </div>
           </Link>
           <Link to="/custom-cake" className="cat-card">
-            <div className="cat-image"><img src="https://images.unsplash.com/photo-1535141192574-5d4897c82536?w=600&q=80" alt="Custom" /></div>
+            <div className="cat-image"><img src="/images/gallery/img5.jpeg" alt="Custom" /></div>
             <div className="cat-info">
               <h3>Custom Designs</h3>
               <p>Your vision, our bake</p>
@@ -82,9 +82,14 @@ const Home = () => {
                 </div>
               </div>
             </div>
+            <div style={{ marginTop: '30px' }}>
+              <Link to="/about" className="btn-primary" style={{ padding: '10px 25px', fontSize: '1.1rem' }}>
+                Read Our Story
+              </Link>
+            </div>
           </div>
           <div className="why-image">
-            <img src="https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80" alt="Baking" />
+            <img src="/images/gallery/img1.jpeg" alt="Saista Bakers Mom Chef" style={{ borderRadius: '20px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }} />
           </div>
         </div>
       </section>
@@ -105,7 +110,7 @@ const Home = () => {
           <div className="footer-social">
             <p>Follow Us</p>
             <div className="social-icons">
-              <span>IG</span> <span>FB</span> <span>TW</span>
+              <a href="https://instagram.com/cakes_n_cookies_basket" target="_blank" rel="noreferrer" style={{color: 'inherit', textDecoration: 'none'}}>Instagram</a>
             </div>
           </div>
         </div>

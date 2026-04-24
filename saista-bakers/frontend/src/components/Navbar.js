@@ -38,6 +38,8 @@ const Navbar = () => {
         <ul className={`nav-links ${mobileOpen ? 'open' : ''}`}>
           <li><Link to="/" onClick={() => setMobileOpen(false)}>HOME</Link></li>
           <li><Link to="/products" onClick={() => setMobileOpen(false)}>PRODUCTS</Link></li>
+          <li><Link to="/about" onClick={() => setMobileOpen(false)}>ABOUT US</Link></li>
+          <li><Link to="/gallery" onClick={() => setMobileOpen(false)}>GALLERY</Link></li>
 
           {/* Speciality Cakes Dropdown */}
           <li
@@ -50,8 +52,6 @@ const Navbar = () => {
               <div className="dropdown-content">
                 <Link to="/custom-cake" onClick={() => { setDropdownOpen(false); setMobileOpen(false); }}>🎂 Custom Cake Design</Link>
                 {isLoggedIn && <Link to="/custom-cakes" onClick={() => { setDropdownOpen(false); setMobileOpen(false); }}>📋 My Custom Orders</Link>}
-                <Link to="/about" onClick={() => { setDropdownOpen(false); setMobileOpen(false); }}>ℹ️ About Us</Link>
-                <Link to="/gallery" onClick={() => { setDropdownOpen(false); setMobileOpen(false); }}>🖼️ Gallery</Link>
               </div>
             )}
           </li>
