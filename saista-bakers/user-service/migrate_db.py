@@ -95,10 +95,10 @@ except Exception as e:
 print("Seeding initial products...")
 initial_products = [
     ('Signature Chocolate Cake', 'Rich dark chocolate layers with ganache.', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
-    ('Velvet Strawberry Dream', 'Light sponge with fresh strawberry cream.', 'Cakes', 500.00, '/images/gallery/img2.jpeg'),
-    ('Vanilla Buttercream Classic', 'Traditional vanilla bean cake with silky frosting.', 'Cakes', 400.00, '/images/gallery/img3.jpeg'),
-    ('Choco-Chip Artisanal Cookies', 'Hand-baked cookies with premium chocolate chunks.', 'Cookies', 150.00, '/images/gallery/img4.jpeg'),
-    ('Oatmeal Raisin Healthy Bite', 'Chewy oats and sweet raisins, a classic treat.', 'Cookies', 120.00, '/images/gallery/img5.jpeg')
+    ('Velvet Strawberry Dream', 'Light sponge with fresh strawberry cream.', 'Cakes', 500.00, '/images/gallery/strawberry.png'),
+    ('Vanilla Buttercream Classic', 'Traditional vanilla bean cake with silky frosting.', 'Cakes', 400.00, '/images/gallery/vanilla.png'),
+    ('Choco-Chip Artisanal Cookies', 'Hand-baked cookies with premium chocolate chunks.', 'Cookies', 150.00, '/images/gallery/cookies.png'),
+    ('Oatmeal Raisin Healthy Bite', 'Chewy oats and sweet raisins, a classic treat.', 'Cookies', 120.00, '/images/gallery/cookies.png')
 ]
 
 try:
