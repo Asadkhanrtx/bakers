@@ -29,9 +29,11 @@ tables = [
     """CREATE TABLE IF NOT EXISTS products (
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
+        description TEXT,
         category VARCHAR(50),
         price DECIMAL(10,2) NOT NULL,
-        image_url VARCHAR(255)
+        image_url VARCHAR(255),
+        available BOOLEAN DEFAULT TRUE
     )""",
     """CREATE TABLE IF NOT EXISTS orders (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -57,6 +59,8 @@ alters = [
     "ALTER TABLE orders ADD COLUMN payment_mode VARCHAR(50) DEFAULT NULL",
     "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'unpaid'",
     "ALTER TABLE orders ADD COLUMN invoice_sent BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE products ADD COLUMN description TEXT AFTER name",
+    "ALTER TABLE products ADD COLUMN available BOOLEAN DEFAULT TRUE",
 ]
 
 for sql in alters:
@@ -90,24 +94,22 @@ except Exception as e:
 # 4. Seed Products
 print("Seeding initial products...")
 initial_products = [
-    ('Signature Chocolate Cake', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
-    ('Velvet Strawberry Dream', 'Cakes', 500.00, '/images/gallery/img2.jpeg'),
-    ('Vanilla Buttercream Classic', 'Cakes', 400.00, '/images/gallery/img3.jpeg'),
-    ('Choco-Chip Artisanal Cookies', 'Cookies', 150.00, '/images/gallery/img4.jpeg'),
-    ('Oatmeal Raisin Healthy Bite', 'Cookies', 120.00, '/images/gallery/img5.jpeg')
+    ('Signature Chocolate Cake', 'Rich dark chocolate layers with ganache.', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
+    ('Velvet Strawberry Dream', 'Light sponge with fresh strawberry cream.', 'Cakes', 500.00, '/images/gallery/img2.jpeg'),
+    ('Vanilla Buttercream Classic', 'Traditional vanilla bean cake with silky frosting.', 'Cakes', 400.00, '/images/gallery/img3.jpeg'),
+    ('Choco-Chip Artisanal Cookies', 'Hand-baked cookies with premium chocolate chunks.', 'Cookies', 150.00, '/images/gallery/img4.jpeg'),
+    ('Oatmeal Raisin Healthy Bite', 'Chewy oats and sweet raisins, a classic treat.', 'Cookies', 120.00, '/images/gallery/img5.jpeg')
 ]
 
 try:
-    cur.execute("SELECT COUNT(*) FROM products")
-    if cur.fetchone()[0] == 0:
-        cur.executemany(
-            "INSERT INTO products (name, category, price, image_url) VALUES (%s, %s, %s, %s)",
-            initial_products
-        )
-        conn.commit()
-        print(f"Seeded {len(initial_products)} products.")
-    else:
-        print("Products table already has data, skipping seed.")
+    # Clear existing if any (to fix schema mismatch in existing data)
+    cur.execute("DELETE FROM products")
+    cur.executemany(
+        "INSERT INTO products (name, description, category, price, image_url, available) VALUES (%s, %s, %s, %s, %s, TRUE)",
+        initial_products
+    )
+    conn.commit()
+    print(f"Seeded {len(initial_products)} products with descriptions.")
 except Exception as e:
     print(f"Product seeding error: {e}")
 
