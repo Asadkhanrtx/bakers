@@ -41,7 +41,8 @@ services:
       DB_PASSWORD: Asad@1234
       DB_NAME: saista_bakers
       DB_PORT: 3306
-      SECRET_KEY: saista-bakers-secret-key-2024-production
+      SECRET_KEY: "saista-bakers-super-secure-prod-key-2024"
+      JWT_SECRET: "saista-bakers-super-secure-prod-key-2024"
     depends_on:
       mysql:
         condition: service_healthy
@@ -62,7 +63,8 @@ services:
       DB_PASSWORD: Asad@1234
       DB_NAME: saista_bakers
       DB_PORT: 3306
-      SECRET_KEY: saista-bakers-secret-key-2024-production
+      SECRET_KEY: "saista-bakers-super-secure-prod-key-2024"
+      JWT_SECRET: "saista-bakers-super-secure-prod-key-2024"
     depends_on:
       mysql:
         condition: service_healthy
@@ -83,7 +85,8 @@ services:
       DB_PASSWORD: Asad@1234
       DB_NAME: saista_bakers
       DB_PORT: 3306
-      SECRET_KEY: saista-bakers-secret-key-2024-production
+      SECRET_KEY: "saista-bakers-super-secure-prod-key-2024"
+      JWT_SECRET: "saista-bakers-super-secure-prod-key-2024"
       ORDER_SERVICE_URL: http://order-service:5002
       USER_SERVICE_URL: http://user-service:5001
       SMTP_SERVER: mailhog
