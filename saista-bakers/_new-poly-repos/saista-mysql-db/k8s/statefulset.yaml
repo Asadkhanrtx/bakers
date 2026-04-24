@@ -69,7 +69,7 @@ spec:
       spec:
         accessModes:
           - ReadWriteOnce
-        storageClassName: local-storage
+        storageClassName: nfs-storage
         resources:
           requests:
             storage: 5Gi
