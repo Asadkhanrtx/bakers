@@ -1,0 +1,17 @@
+# The single Gateway for all Saista Bakers traffic.
+# All 4 HTTPRoute resources (user, order, payment, frontend) attach to this.
+# The Gateway controller provisions a LoadBalancer on port 80.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: saista-gateway
+  namespace: dev
+spec:
+  gatewayClassName: saista-gateway-class
+  listeners:
+    - name: http
+      port: 80
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same

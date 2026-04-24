@@ -1,0 +1,9 @@
+# Local storage class for dev — data persists on the node's disk.
+# Not suitable for production multi-node clusters without a distributed volume solution.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-storage
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain

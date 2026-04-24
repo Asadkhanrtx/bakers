@@ -1,0 +1,20 @@
+# GatewayClass tells Kubernetes WHICH Gateway implementation to use.
+#
+# Common controllerName values — pick the one matching your setup:
+#   Envoy Gateway:        gateway.envoyproxy.io/gatewayclass-controller
+#   nginx-gateway-fabric: gateway.nginx.org/nginx-gateway-controller
+#   Istio:                istio.io/gateway-controller
+#   Kong:                 konghq.com/kic-gateway-controller
+#
+# Prerequisite: Install Gateway API CRDs first:
+#   kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+#
+# Then install your chosen Gateway controller (e.g. Envoy Gateway):
+#   helm install eg oci://docker.io/envoyproxy/gateway-helm \
+#     --version v1.2.0 -n envoy-gateway-system --create-namespace
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: saista-gateway-class
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
