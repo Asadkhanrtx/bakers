@@ -1,129 +1,143 @@
 import mysql.connector
 import os
-from passlib.context import CryptContext
+import time
 
-# Use environment variables with fallbacks for production/local
-DB_CONFIG = {
-    'host': os.getenv('DB_HOST', 'mysql'),
-    'user': os.getenv('DB_USER', 'root'),
-    'password': os.getenv('DB_PASSWORD', 'Asad@1234'),
-    'database': os.getenv('DB_NAME', 'saista_bakers')
-}
+def migrate():
+    print("Connecting to database at mysql...")
+    while True:
+        try:
+            conn = mysql.connector.connect(
+                host=os.getenv('DB_HOST', 'mysql'),
+                user=os.getenv('DB_USER', 'root'),
+                password=os.getenv('DB_PASSWORD', 'Asad@1234'),
+                database=os.getenv('DB_NAME', 'saista_bakers')
+            )
+            break
+        except Exception as e:
+            print(f"Waiting for DB... {e}")
+            time.sleep(2)
 
-print(f"Connecting to database at {DB_CONFIG['host']}...")
-conn = mysql.connector.connect(**DB_CONFIG)
-cur = conn.cursor()
+    cur = conn.cursor()
 
-# 1. Create essential tables if they don't exist
-print("Ensuring tables exist...")
-tables = [
-    """CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        username VARCHAR(50) UNIQUE NOT NULL,
-        email VARCHAR(100) UNIQUE NOT NULL,
-        password_hash VARCHAR(255) NOT NULL,
-        full_name VARCHAR(100),
-        role VARCHAR(20) DEFAULT 'customer',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""",
-    """CREATE TABLE IF NOT EXISTS products (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(100) NOT NULL,
-        description TEXT,
-        category VARCHAR(50),
-        price DECIMAL(10,2) NOT NULL,
-        image_url VARCHAR(255),
-        available BOOLEAN DEFAULT TRUE
-    )""",
-    """CREATE TABLE IF NOT EXISTS orders (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT,
-        total_price DECIMAL(10,2) DEFAULT 0.00,
-        status VARCHAR(20) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        payment_mode VARCHAR(50),
-        payment_status VARCHAR(50) DEFAULT 'unpaid',
-        invoice_sent BOOLEAN DEFAULT FALSE,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-    )""",
-    """CREATE TABLE IF NOT EXISTS order_items (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        order_id INT,
-        product_id INT,
-        quantity INT NOT NULL,
-        price_at_purchase DECIMAL(10,2) NOT NULL,
-        FOREIGN KEY (order_id) REFERENCES orders(id),
-        FOREIGN KEY (product_id) REFERENCES products(id)
-    )"""
-]
+    # 1. Create Tables
+    tables = [
+        """CREATE TABLE IF NOT EXISTS users (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            password_hash VARCHAR(255) NOT NULL,
+            full_name VARCHAR(100),
+            role VARCHAR(20) DEFAULT 'customer',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )""",
+        """CREATE TABLE IF NOT EXISTS products (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(100) NOT NULL,
+            description TEXT,
+            category VARCHAR(50),
+            price DECIMAL(10,2) NOT NULL,
+            image_url VARCHAR(255),
+            available BOOLEAN DEFAULT TRUE
+        )""",
+        """CREATE TABLE IF NOT EXISTS orders (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            total_price DECIMAL(10,2) DEFAULT 0.00,
+            status VARCHAR(20) DEFAULT 'pending',
+            delivery_address TEXT,
+            delivery_date DATE,
+            payment_mode VARCHAR(50),
+            payment_status VARCHAR(50) DEFAULT 'unpaid',
+            invoice_sent BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )""",
+        """CREATE TABLE IF NOT EXISTS order_items (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            order_id INT,
+            product_id INT,
+            quantity INT NOT NULL,
+            price_at_purchase DECIMAL(10,2) NOT NULL,
+            FOREIGN KEY (order_id) REFERENCES orders(id),
+            FOREIGN KEY (product_id) REFERENCES products(id)
+        )""",
+        """CREATE TABLE IF NOT EXISTS custom_orders (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id INT,
+            pound VARCHAR(20),
+            flavour VARCHAR(50),
+            description TEXT,
+            delivery_date DATE,
+            status VARCHAR(20) DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id)
+        )"""
+    ]
 
-for sql in tables:
-    cur.execute(sql)
-    conn.commit()
+    print("Ensuring all tables exist...")
+    for table_sql in tables:
+        cur.execute(table_sql)
 
-# 2. Add columns if missing (Migration logic)
-print("Checking for missing columns...")
-alters = [
-    "ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'",
-    "ALTER TABLE orders ADD COLUMN payment_mode VARCHAR(50) DEFAULT NULL",
-    "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'unpaid'",
-    "ALTER TABLE orders ADD COLUMN invoice_sent BOOLEAN DEFAULT FALSE",
-    "ALTER TABLE orders CHANGE COLUMN total_amount total_price DECIMAL(10,2) DEFAULT 0.00",
-    "ALTER TABLE orders ADD COLUMN total_price DECIMAL(10,2) DEFAULT 0.00",
-    "ALTER TABLE products ADD COLUMN description TEXT AFTER name",
-    "ALTER TABLE products ADD COLUMN available BOOLEAN DEFAULT TRUE",
-]
+    # 2. Fix Columns (Add missing ones if table existed)
+    print("Checking for missing columns...")
+    alters = [
+        ("users", "role", "ALTER TABLE users ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'customer'"),
+        ("orders", "total_price", "ALTER TABLE orders ADD COLUMN total_price DECIMAL(10,2) DEFAULT 0.00"),
+        ("orders", "delivery_address", "ALTER TABLE orders ADD COLUMN delivery_address TEXT"),
+        ("orders", "delivery_date", "ALTER TABLE orders ADD COLUMN delivery_date DATE"),
+        ("orders", "payment_mode", "ALTER TABLE orders ADD COLUMN payment_mode VARCHAR(50)"),
+        ("orders", "payment_status", "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'unpaid'"),
+        ("products", "description", "ALTER TABLE products ADD COLUMN description TEXT AFTER name"),
+        ("products", "available", "ALTER TABLE products ADD COLUMN available BOOLEAN DEFAULT TRUE"),
+    ]
 
-for sql in alters:
+    for table, col, sql in alters:
+        try:
+            cur.execute(f"SHOW COLUMNS FROM {table} LIKE '{col}'")
+            if not cur.fetchone():
+                print(f"Adding column {col} to {table}...")
+                cur.execute(sql)
+        except Exception as e:
+            print(f"Column check error on {table}.{col}: {e}")
+
+    # 3. Seed Admin
+    from passlib.hash import bcrypt
+    admin_pass = bcrypt.hash("Asad@1234")
     try:
-        cur.execute(sql)
-        conn.commit()
+        cur.execute("SELECT id FROM users WHERE username='asadadmin' OR role='admin'")
+        if not cur.fetchone():
+            cur.execute("INSERT INTO users (username, email, password_hash, full_name, role) VALUES (%s,%s,%s,%s,%s)",
+                        ('asadadmin', 'admin@saistabakers.com', admin_pass, 'Asad Admin', 'admin'))
+            print("Admin user seeded.")
+        else:
+            cur.execute("UPDATE users SET role='admin' WHERE username='asadadmin'")
+            print("Admin role verified.")
     except Exception as e:
-        if '1060' in str(e): # Column already exists
-            continue
-        print(f"Alter error: {e}")
+        print(f"Admin seed error: {e}")
 
-# 3. Seed Admin User
-print("Seeding admin user...")
-pwd_ctx = CryptContext(schemes=['bcrypt'], deprecated='auto')
-h = pwd_ctx.hash('Admin@1234')
-try:
-    cur.execute(
-        "INSERT INTO users (username, email, password_hash, full_name, role) VALUES (%s,%s,%s,%s,%s)",
-        ('admin', 'admin@saistabakers.com', h, 'Admin User', 'admin')
-    )
+    # 4. Seed Products
+    initial_products = [
+        ('Signature Chocolate Cake', 'Rich dark chocolate layers with ganache.', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
+        ('Velvet Strawberry Dream', 'Light sponge with fresh strawberry cream.', 'Cakes', 500.00, '/images/gallery/strawberry.png'),
+        ('Vanilla Buttercream Classic', 'Traditional vanilla bean cake with silky frosting.', 'Cakes', 400.00, '/images/gallery/vanilla.png'),
+        ('Choco-Chip Artisanal Cookies', 'Hand-baked cookies with premium chocolate chunks.', 'Cookies', 150.00, '/images/gallery/cookies.png'),
+        ('Oatmeal Raisin Healthy Bite', 'Chewy oats and sweet raisins, a classic treat.', 'Cookies', 120.00, '/images/gallery/cookies.png')
+    ]
+    try:
+        cur.execute("SELECT COUNT(*) FROM products")
+        if cur.fetchone()[0] == 0:
+            cur.executemany(
+                "INSERT INTO products (name, description, category, price, image_url, available) VALUES (%s, %s, %s, %s, %s, TRUE)",
+                initial_products
+            )
+            print(f"Seeded {len(initial_products)} products.")
+    except Exception as e:
+        print(f"Product seeding error: {e}")
+
     conn.commit()
-    print('Admin account created: admin / Admin@1234')
-except Exception as e:
-    if '1062' in str(e): # Duplicate entry
-        cur.execute("UPDATE users SET role='admin' WHERE username='admin'")
-        conn.commit()
-        print('Admin account already exists (role updated)')
-    else:
-        print(f'Admin seeding error: {e}')
+    cur.close()
+    conn.close()
+    print("Migration complete! All tables and columns are ready.")
 
-# 4. Seed Products
-print("Seeding initial products...")
-initial_products = [
-    ('Signature Chocolate Cake', 'Rich dark chocolate layers with ganache.', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
-    ('Velvet Strawberry Dream', 'Light sponge with fresh strawberry cream.', 'Cakes', 500.00, '/images/gallery/strawberry.png'),
-    ('Vanilla Buttercream Classic', 'Traditional vanilla bean cake with silky frosting.', 'Cakes', 400.00, '/images/gallery/vanilla.png'),
-    ('Choco-Chip Artisanal Cookies', 'Hand-baked cookies with premium chocolate chunks.', 'Cookies', 150.00, '/images/gallery/cookies.png'),
-    ('Oatmeal Raisin Healthy Bite', 'Chewy oats and sweet raisins, a classic treat.', 'Cookies', 120.00, '/images/gallery/cookies.png')
-]
-
-try:
-    # Clear existing if any (to fix schema mismatch in existing data)
-    cur.execute("DELETE FROM products")
-    cur.executemany(
-        "INSERT INTO products (name, description, category, price, image_url, available) VALUES (%s, %s, %s, %s, %s, TRUE)",
-        initial_products
-    )
-    conn.commit()
-    print(f"Seeded {len(initial_products)} products with descriptions.")
-except Exception as e:
-    print(f"Product seeding error: {e}")
-
-cur.close()
-conn.close()
-print('Migration complete!')
+if __name__ == "__main__":
+    migrate()
