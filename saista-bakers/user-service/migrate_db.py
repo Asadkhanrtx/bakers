@@ -100,8 +100,13 @@ def migrate():
             if not cur.fetchone():
                 print(f"Adding missing column {col} to {table}...")
                 cur.execute(sql)
+                conn.commit()
         except Exception as e:
-            pass # Column likely exists or table doesn't
+            print(f"Fixing {table}.{col}... {e}")
+            try:
+                cur.execute(sql)
+                conn.commit()
+            except: pass
 
     # 3. Handle total_amount -> total_price rename if needed
     try:
