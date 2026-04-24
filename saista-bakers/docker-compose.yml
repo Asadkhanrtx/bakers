@@ -9,8 +9,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: Asad@1234
       MYSQL_DATABASE: saista_bakers
-      MYSQL_USER: root
-      MYSQL_PASSWORD: Asad@1234
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
