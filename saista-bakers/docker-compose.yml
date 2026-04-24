@@ -5,6 +5,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: saista-mysql
+    command: --performance-schema=OFF --innodb-buffer-pool-size=64M --innodb-log-buffer-size=1M
     environment:
       MYSQL_ROOT_PASSWORD: Asad@1234
       MYSQL_DATABASE: saista_bakers
@@ -16,6 +17,7 @@ services:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-u", "root", "-pAsad@1234"]
       timeout: 20s
       retries: 10
+      start_period: 30s
     networks:
       - saista-network
     restart: unless-stopped
