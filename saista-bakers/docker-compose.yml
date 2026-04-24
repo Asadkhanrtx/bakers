@@ -10,8 +10,6 @@ services:
       MYSQL_DATABASE: saista_bakers
       MYSQL_USER: root
       MYSQL_PASSWORD: Asad@1234
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -20,19 +18,19 @@ services:
       retries: 10
     networks:
       - saista-network
+    restart: unless-stopped
 
   # SMTP Server (for email notifications)
   mailhog:
     image: mailhog/mailhog:latest
     container_name: saista-mailhog
-    ports:
-      - "1025:1025"  # SMTP port
-      - "8025:8025"  # Web UI port
     networks:
       - saista-network
+    restart: unless-stopped
 
   # User Service
   user-service:
+    image: asadoblivion/saista-user-service:latest
     build:
       context: ./user-service
       dockerfile: ../docker/Dockerfile.user-service
@@ -44,8 +42,6 @@ services:
       DB_NAME: saista_bakers
       DB_PORT: 3306
       SECRET_KEY: saista-bakers-secret-key-2024-production
-    ports:
-      - "5001:5001"
     depends_on:
       mysql:
         condition: service_healthy
@@ -55,6 +51,7 @@ services:
 
   # Order Service
   order-service:
+    image: asadoblivion/saista-order-service:latest
     build:
       context: ./order-service
       dockerfile: ../docker/Dockerfile.order-service
@@ -66,8 +63,6 @@ services:
       DB_NAME: saista_bakers
       DB_PORT: 3306
       SECRET_KEY: saista-bakers-secret-key-2024-production
-    ports:
-      - "5002:5002"
     depends_on:
       mysql:
         condition: service_healthy
@@ -77,6 +72,7 @@ services:
 
   # Payment Service
   payment-service:
+    image: asadoblivion/saista-payment-service:latest
     build:
       context: ./payment-service
       dockerfile: ../docker/Dockerfile.payment-service
@@ -93,8 +89,6 @@ services:
       SMTP_SERVER: mailhog
       SMTP_PORT: 1025
       SENDER_EMAIL: noreply@saistabakers.com
-    ports:
-      - "5003:5003"
     depends_on:
       mysql:
         condition: service_healthy
@@ -102,18 +96,19 @@ services:
       - saista-network
     restart: unless-stopped
 
-  # Frontend
+  # Frontend (Nginx)
   frontend:
+    image: asadoblivion/saista-frontend:latest
     build:
       context: ./frontend
       dockerfile: ../docker/Dockerfile.frontend
     container_name: saista-frontend
     environment:
-      REACT_APP_USER_SERVICE_URL: http://localhost:5001
-      REACT_APP_ORDER_SERVICE_URL: http://localhost:5002
-      REACT_APP_PAYMENT_SERVICE_URL: http://localhost:5003
+      REACT_APP_USER_SERVICE_URL: /api/users
+      REACT_APP_ORDER_SERVICE_URL: /api/orders
+      REACT_APP_PAYMENT_SERVICE_URL: /api/payment
     ports:
-      - "3000:3000"
+      - "80:80"  # ONLY expose the frontend to the outside world
     depends_on:
       - user-service
       - order-service

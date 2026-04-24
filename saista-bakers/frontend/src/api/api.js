@@ -1,8 +1,8 @@
 import axios from 'axios';
 
-const USER_SERVICE_URL = process.env.REACT_APP_USER_SERVICE_URL || 'http://localhost:5001';
-const ORDER_SERVICE_URL = process.env.REACT_APP_ORDER_SERVICE_URL || 'http://localhost:5002';
-const PAYMENT_SERVICE_URL = process.env.REACT_APP_PAYMENT_SERVICE_URL || 'http://localhost:5003';
+const USER_SERVICE_URL = process.env.REACT_APP_USER_SERVICE_URL || '/api/users';
+const ORDER_SERVICE_URL = process.env.REACT_APP_ORDER_SERVICE_URL || '/api/orders';
+const PAYMENT_SERVICE_URL = process.env.REACT_APP_PAYMENT_SERVICE_URL || '/api/payment';
 
 const getAuthToken = () => localStorage.getItem('authToken');
 const authHeader = () => ({ Authorization: `Bearer ${getAuthToken()}` });
