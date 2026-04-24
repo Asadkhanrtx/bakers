@@ -38,7 +38,7 @@ tables = [
     """CREATE TABLE IF NOT EXISTS orders (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT,
-        total_amount DECIMAL(10,2),
+        total_price DECIMAL(10,2) DEFAULT 0.00,
         status VARCHAR(20) DEFAULT 'pending',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         payment_mode VARCHAR(50),
@@ -59,6 +59,8 @@ alters = [
     "ALTER TABLE orders ADD COLUMN payment_mode VARCHAR(50) DEFAULT NULL",
     "ALTER TABLE orders ADD COLUMN payment_status VARCHAR(50) DEFAULT 'unpaid'",
     "ALTER TABLE orders ADD COLUMN invoice_sent BOOLEAN DEFAULT FALSE",
+    "ALTER TABLE orders CHANGE COLUMN total_amount total_price DECIMAL(10,2) DEFAULT 0.00",
+    "ALTER TABLE orders ADD COLUMN total_price DECIMAL(10,2) DEFAULT 0.00",
     "ALTER TABLE products ADD COLUMN description TEXT AFTER name",
     "ALTER TABLE products ADD COLUMN available BOOLEAN DEFAULT TRUE",
 ]
