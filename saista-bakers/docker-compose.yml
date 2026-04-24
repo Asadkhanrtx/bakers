@@ -89,9 +89,11 @@ services:
       JWT_SECRET: "saista-bakers-super-secure-prod-key-2024"
       ORDER_SERVICE_URL: http://order-service:5002
       USER_SERVICE_URL: http://user-service:5001
-      SMTP_SERVER: mailhog
-      SMTP_PORT: 1025
-      SENDER_EMAIL: noreply@saistabakers.com
+      SMTP_SERVER: "smtp.gmail.com"
+      SMTP_PORT: 587
+      SENDER_EMAIL: "asadchamp109@gmail.com"
+      SMTP_USER: "asadchamp109@gmail.com"
+      SMTP_PASSWORD: "eepbldhaftqdggrt"
     depends_on:
       mysql:
         condition: service_healthy
