@@ -55,3 +55,18 @@ The Frontend will load automatically. All API requests (like logging in, orderin
 - URL: `http://<YOUR_AWS_PUBLIC_IP>/admin/login`
 - Username: `admin`
 - Password: `Admin@1234`
+
+---
+
+## Pushing to Docker Hub (Optional)
+If you want to host your images on Docker Hub for future use (like in Kubernetes):
+
+1. **Log in:**
+   ```bash
+   docker login
+   ```
+2. **Build and Push:**
+   ```bash
+   docker-compose build
+   docker-compose push
+   ```
