@@ -87,6 +87,30 @@ except Exception as e:
     else:
         print(f'Admin seeding error: {e}')
 
+# 4. Seed Products
+print("Seeding initial products...")
+initial_products = [
+    ('Signature Chocolate Cake', 'Cakes', 450.00, '/images/gallery/img1.jpeg'),
+    ('Velvet Strawberry Dream', 'Cakes', 500.00, '/images/gallery/img2.jpeg'),
+    ('Vanilla Buttercream Classic', 'Cakes', 400.00, '/images/gallery/img3.jpeg'),
+    ('Choco-Chip Artisanal Cookies', 'Cookies', 150.00, '/images/gallery/img4.jpeg'),
+    ('Oatmeal Raisin Healthy Bite', 'Cookies', 120.00, '/images/gallery/img5.jpeg')
+]
+
+try:
+    cur.execute("SELECT COUNT(*) FROM products")
+    if cur.fetchone()[0] == 0:
+        cur.executemany(
+            "INSERT INTO products (name, category, price, image_url) VALUES (%s, %s, %s, %s)",
+            initial_products
+        )
+        conn.commit()
+        print(f"Seeded {len(initial_products)} products.")
+    else:
+        print("Products table already has data, skipping seed.")
+except Exception as e:
+    print(f"Product seeding error: {e}")
+
 cur.close()
 conn.close()
 print('Migration complete!')
