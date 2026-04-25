@@ -9,7 +9,7 @@ metadata:
   name: nfs-storage
 provisioner: nfs.csi.k8s.io
 parameters:
-  server: 172.31.35.135
+  server: 172.31.12.241
   share: /exports/saista/mysql
 reclaimPolicy: Retain
 volumeBindingMode: Immediate

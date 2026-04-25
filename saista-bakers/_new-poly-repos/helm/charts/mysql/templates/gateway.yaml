@@ -1,18 +1,15 @@
-# Combined GatewayClass and Gateway for K Gateway (Kong)
-# This manifest serves as the single entry point for all Saista Bakers microservices.
-
 apiVersion: gateway.networking.k8s.io/v1
 kind: GatewayClass
 metadata:
   name: saista-gateway-class
 spec:
-  controllerName: kgateway.dev/kgateway
+  controllerName: {{ .Values.gateway.controllerName }}
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
-  name: saista-gateway
-  namespace: dev
+  name: {{ .Values.gateway.name }}
+  namespace: {{ .Values.global.namespace }}
 spec:
   gatewayClassName: saista-gateway-class
   listeners:
