@@ -3,7 +3,7 @@ global:
   imageTag: latest
 
 user-service:
-  replicaCount: 1
+  replicaCount: 2
 
 order-service:
   replicaCount: 1
