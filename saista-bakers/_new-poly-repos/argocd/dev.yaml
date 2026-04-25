@@ -14,7 +14,7 @@ spec:
   # ArgoCD watches this branch — any push here triggers a sync.
   source:
     repoURL: https://github.com/SaistaBakers/saista-helm-charts
-    targetRevision: dev
+    targetRevision: HEAD
     path: helm
     helm:
       valueFiles:
