@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: saista-bakers-dev
+  namespace: argocd
+  labels:
+    environment: dev
+    project: saista-bakers
+spec:
+  project: default
+
+  # ── SOURCE ────────────────────────────────────────────────────────────────
+  # Points to your GitHub repo, develop branch, and the Helm chart folder.
+  # ArgoCD watches this branch — any push here triggers a sync.
+  source:
+    repoURL: https://github.com/SaistaBakers/saista-helm-charts
+    targetRevision: dev
+    path: helm
+    helm:
+      valueFiles:
+        - values-dev.yaml   # overrides namespace=dev, imageTag=latest, replicas=1
+
+  # ── DESTINATION ───────────────────────────────────────────────────────────
+  # The cluster ArgoCD is running in (in-cluster) and the target namespace.
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+
+  # ── SYNC POLICY ───────────────────────────────────────────────────────────
+  syncPolicy:
+    automated:
+      prune: true       # deletes K8s resources that were removed from Helm/Git
+      selfHeal: true    # reverts any manual kubectl changes back to Git state
+    syncOptions:
+      - CreateNamespace=true    # creates dev namespace if it doesn't exist
+      - ServerSideApply=true    # handles large CRDs (Gateway API) cleanly
