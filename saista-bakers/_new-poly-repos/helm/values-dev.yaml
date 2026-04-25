@@ -9,7 +9,7 @@ order-service:
   replicaCount: 2
 
 payment-service:
-  replicaCount: 1
+  replicaCount: 2
 
 frontend:
   replicaCount: 1
