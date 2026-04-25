@@ -12,4 +12,4 @@ payment-service:
   replicaCount: 2
 
 frontend:
-  replicaCount: 1
+  replicaCount: 2
